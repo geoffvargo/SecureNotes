@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: "SecureNotes"
+
+  security:
+    user:
+      name: "admin"
+      password: "password"
