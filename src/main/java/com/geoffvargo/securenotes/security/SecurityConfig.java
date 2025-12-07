@@ -18,4 +18,4 @@ public class SecurityConfig {
 		http.httpBasic(withDefaults());
 		return http.build();
 	}
-}
+}Z
