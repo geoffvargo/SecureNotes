@@ -8,4 +8,9 @@ public class HelloController {
 	public String index() {
 		return "Hello World";
 	}
+	
+	@GetMapping("/contact")
+	public String contact() {
+		return "Contact";
+	}
 }
