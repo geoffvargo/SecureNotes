@@ -1,4 +1,4 @@
-package com.geoffvargo.securenotes.controller;
+package com.geoffvargo.securenotes.controllers;
 
 import org.springframework.web.bind.annotation.*;
 

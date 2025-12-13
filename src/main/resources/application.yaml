@@ -2,7 +2,25 @@ spring:
   application:
     name: "SecureNotes"
 
+  datasource:
+    url: "jdbc:mysql://localhost:3306/securenotes"
+    username: "root"
+    password: "root"
+
+  jpa:
+    hibernate:
+      ddl-auto: "update"
+    properties:
+      hibernate:
+        dialect: "org.hibernate.dialect.MySQLDialect"
+
   security:
     user:
       name: "admin"
       password: "password"
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
