@@ -8,6 +8,8 @@ import org.springframework.security.core.userdetails.*;
 import org.springframework.security.provisioning.*;
 import org.springframework.security.web.*;
 
+import javax.sql.*;
+
 import static org.springframework.security.config.Customizer.*;
 
 @Configuration
@@ -25,8 +27,8 @@ public class SecurityConfig {
 	}
 	
 	@Bean
-	public UserDetailsService userDetailsService() {
-		InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+	public UserDetailsService userDetailsService(DataSource datasource) {
+		JdbcUserDetailsManager manager = new JdbcUserDetailsManager(datasource);
 		
 		if (!manager.userExists("user1")) {
 			manager.createUser(
