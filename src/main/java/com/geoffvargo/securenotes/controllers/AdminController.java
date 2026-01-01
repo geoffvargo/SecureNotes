@@ -6,12 +6,14 @@ import com.geoffvargo.securenotes.services.*;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
 @RestController
 @RequestMapping("/api/admin")
+//@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class AdminController {
 	@Autowired
 	UserService userService;
@@ -28,6 +30,7 @@ public class AdminController {
 		return ResponseEntity.ok("User role updated.");
 	}
 	
+//	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@GetMapping("/user/{id}")
 	public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
 		return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
