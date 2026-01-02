@@ -10,6 +10,8 @@ import org.springframework.security.config.annotation.method.configuration.*;
 import org.springframework.security.config.annotation.web.builders.*;
 import org.springframework.security.config.annotation.web.configuration.*;
 import org.springframework.security.config.annotation.web.configurers.*;
+import org.springframework.security.crypto.bcrypt.*;
+import org.springframework.security.crypto.password.*;
 import org.springframework.security.web.*;
 
 import java.time.*;
@@ -22,6 +24,11 @@ import static org.springframework.security.config.Customizer.*;
                       securedEnabled = true,
                       jsr250Enabled = true)
 public class SecurityConfig {
+	
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
 	
 	@Bean
 	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -38,7 +45,8 @@ public class SecurityConfig {
 	
 	@Bean
 	public CommandLineRunner initData(RoleRepository roleRepository,
-	                                  UserRepository userRepository) {
+	                                  UserRepository userRepository,
+	                                  PasswordEncoder passwordEncoder) {
 		return args -> {
 			Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
 			                              .orElseGet(() ->
@@ -49,7 +57,7 @@ public class SecurityConfig {
 				                                          roleRepository.save(new Role(AppRole.ROLE_ADMIN)));
 			
 			if (!userRepository.existsByUserName("user1")) {
-				User user1 = new User("user1", "user1@example.com", "{noop}password1");
+				User user1 = new User("user1", "user1@example.com", passwordEncoder.encode("password1"));
 				user1.setAccountNonLocked(false);
 				user1.setAccountNonExpired(true);
 				user1.setCredentialsNonExpired(true);
@@ -63,7 +71,7 @@ public class SecurityConfig {
 			}
 			
 			if (!userRepository.existsByUserName("admin")) {
-				User admin = new User("admin", "admin@example.com", "{noop}adminPass");
+				User admin = new User("admin", "admin@example.com", passwordEncoder.encode("adminPass"));
 				admin.setAccountNonLocked(true);
 				admin.setAccountNonExpired(true);
 				admin.setCredentialsNonExpired(true);
