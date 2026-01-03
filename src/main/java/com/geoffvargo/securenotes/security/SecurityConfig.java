@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configurers.*;
 import org.springframework.security.crypto.bcrypt.*;
 import org.springframework.security.crypto.password.*;
 import org.springframework.security.web.*;
+import org.springframework.security.web.authentication.*;
 
 import java.time.*;
 
@@ -38,6 +39,7 @@ public class SecurityConfig {
 				                              .requestMatchers("/public/**").permitAll()
 				                              .anyRequest().authenticated());
 		http.csrf(AbstractHttpConfigurer::disable);
+		http.addFilterBefore(new CustomLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
 		// http.formLogin(withDefaults());
 		http.httpBasic(withDefaults());
 		return http.build();
@@ -85,29 +87,5 @@ public class SecurityConfig {
 			}
 		};
 	}
-
-//	@Bean
-//	public UserDetailsService userDetailsService(DataSource datasource) {
-//		JdbcUserDetailsManager manager = new JdbcUserDetailsManager(datasource);
-//
-//		if (!manager.userExists("user1")) {
-//			manager.createUser(
-//				User.withUsername("user1")
-//				    .password("{noop}password1")
-//				    .roles("USER")
-//					.build()
-//			);
-//		}
-//
-//		if (!manager.userExists("admin")) {
-//			manager.createUser(
-//				new User.UserBuilder.userName("admin")
-//				    .password("{noop}adminPass")
-//				    .roles("ADMIN")
-//					.build()
-//			);
-//		}
-//
-//		return manager;
-//	}
 }
+
