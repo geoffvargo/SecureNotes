@@ -19,6 +19,10 @@ spring:
       name: "admin"
       password: "password"
 
+  app:
+    jwtSecret: "mySecretKey123912738aopsgjnspkmndfsopkvajoirjg94gf2opfng2moknm"
+    jwtExpirationMs: 172800000
+
 logging:
   level:
     org:
