@@ -1,5 +1,8 @@
 package com.geoffvargo.securenotes.controllers;
 
+import com.geoffvargo.securenotes.models.*;
+import com.geoffvargo.securenotes.models.User;
+import com.geoffvargo.securenotes.repositories.*;
 import com.geoffvargo.securenotes.security.jwt.*;
 import com.geoffvargo.securenotes.security.request.*;
 import com.geoffvargo.securenotes.security.response.*;
@@ -10,9 +13,12 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.core.*;
 import org.springframework.security.core.context.*;
 import org.springframework.security.core.userdetails.*;
+import org.springframework.security.crypto.password.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+
+import jakarta.validation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -22,6 +28,15 @@ public class AuthController {
 	
 	@Autowired
 	private AuthenticationManager authenticationManager;
+	
+	@Autowired
+	UserRepository userRepository;
+	
+	@Autowired
+	RoleRepository roleRepository;
+	
+	@Autowired
+	PasswordEncoder encoder;
 	
 	@PostMapping("/public/signin")
 	public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
@@ -57,5 +72,44 @@ public class AuthController {
 		
 		// Return the response entity with the JWT token included in the response body
 		return ResponseEntity.ok(response);
+	}
+	
+	@PostMapping("/public/signup")
+	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest request) {
+		if (userRepository.existsByUserName(request.getUsername())) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
+		}
+		
+		if (userRepository.existsByEmail(request.getEmail())) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
+		}
+		
+		// Create new user's account
+		User user = new User(request.getUsername(),
+		                     request.getEmail(),
+		                     encoder.encode(request.getPassword()));
+		
+		Set<String> strRoles = request.getRole();
+		Role role;
+		
+		if (strRoles == null || strRoles.isEmpty()) {
+			role = roleRepository.findByRoleName(AppRole.ROLE_USER)
+			                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+		} else {
+			String roleStr = strRoles.iterator().next();
+			
+			if (roleStr.equals("admin")) {
+				role = roleRepository.findByRoleName(AppRole.ROLE_ADMIN)
+				                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+			} else {
+				role = roleRepository.findByRoleName(AppRole.ROLE_USER)
+				                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+			}
+			
+			user.setRole(role);
+			userRepository.save(user);
+		}
+		
+		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
 	}
 }
