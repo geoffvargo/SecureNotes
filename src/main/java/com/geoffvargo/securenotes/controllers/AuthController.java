@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.password.*;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.*;
 import java.util.*;
 
 import jakarta.validation.*;
@@ -106,9 +107,18 @@ public class AuthController {
 				                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 			}
 			
-			user.setRole(role);
-			userRepository.save(user);
+			user.setAccountNonLocked(true);
+			user.setAccountNonExpired(true);
+			user.setCredentialsNonExpired(true);
+			user.setEnabled(true);
+			user.setCredentialsExpiryDate(LocalDate.now().plusYears(1));
+			user.setAccountExpiryDate(LocalDate.now().plusYears(1));
+			user.setTwoFactorEnabled(false);
+			user.setSignUpMethod("email");
 		}
+		
+		user.setRole(role);
+		userRepository.save(user);
 		
 		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
 	}
