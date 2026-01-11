@@ -6,11 +6,13 @@ import com.geoffvargo.securenotes.repositories.*;
 import com.geoffvargo.securenotes.security.jwt.*;
 import com.geoffvargo.securenotes.security.request.*;
 import com.geoffvargo.securenotes.security.response.*;
+import com.geoffvargo.securenotes.services.*;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.*;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.*;
+import org.springframework.security.core.annotation.*;
 import org.springframework.security.core.context.*;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.password.*;
@@ -32,6 +34,9 @@ public class AuthController {
 	
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	UserService userService;
 	
 	@Autowired
 	RoleRepository roleRepository;
@@ -121,5 +126,30 @@ public class AuthController {
 		userRepository.save(user);
 		
 		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+	}
+	
+	@GetMapping("/user")
+	public ResponseEntity<?> getUserDetails(@AuthenticationPrincipal UserDetails userDetails) {
+		User user = userService.findByUsername(userDetails.getUsername());
+		
+		List<String> roles = userDetails.getAuthorities().stream()
+		                                .map(GrantedAuthority::getAuthority)
+		                                .toList();
+		
+		UserInfoResponse response = new UserInfoResponse(
+			user.getUserId(),
+			user.getUserName(),
+			user.getEmail(),
+			user.isAccountNonLocked(),
+			user.isAccountNonExpired(),
+			user.isCredentialsNonExpired(),
+			user.isEnabled(),
+			user.getCredentialsExpiryDate(),
+			user.getAccountExpiryDate(),
+			user.isTwoFactorEnabled(),
+			roles
+		);
+		
+		return ResponseEntity.ok().body(response);
 	}
 }
