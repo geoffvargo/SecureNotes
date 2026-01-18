@@ -26,6 +26,13 @@ public class WebConfig implements WebMvcConfigurer {
 		        .allowedHeaders("*")
 		        .allowCredentials(true)
 		        .maxAge(3600);
+		
+		registry.addMapping("/api/csrf-token")
+		        .allowedOrigins(frontendUrl)
+		        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+		        .allowedHeaders("*")
+		        .allowCredentials(true)
+		        .maxAge(3600);
 	}
 
 //	@Bean
