@@ -23,6 +23,9 @@ spring:
     jwtSecret: "mySecretKey123912738aopsgjnspkmndfsopkvajoirjg94gf2opfng2moknm"
     jwtExpirationMs: 172800000
 
+frontend:
+  url: "http://localhost:3000"
+
 logging:
   level:
     org:
