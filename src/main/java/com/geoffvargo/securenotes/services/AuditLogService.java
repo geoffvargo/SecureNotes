@@ -1,4 +1,4 @@
-package com.geoffvargo.securenotes.services.impl;
+package com.geoffvargo.securenotes.services;
 
 import com.geoffvargo.securenotes.models.*;
 

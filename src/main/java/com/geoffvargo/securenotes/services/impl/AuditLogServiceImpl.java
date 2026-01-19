@@ -2,6 +2,7 @@ package com.geoffvargo.securenotes.services.impl;
 
 import com.geoffvargo.securenotes.models.*;
 import com.geoffvargo.securenotes.repositories.*;
+import com.geoffvargo.securenotes.services.*;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
