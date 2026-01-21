@@ -4,6 +4,8 @@ import com.geoffvargo.securenotes.models.*;
 
 import org.springframework.data.jpa.repository.*;
 
-public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
+import java.util.*;
 
+public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
+	List<AuditLog> findByNoteId(Long noteId);
 }

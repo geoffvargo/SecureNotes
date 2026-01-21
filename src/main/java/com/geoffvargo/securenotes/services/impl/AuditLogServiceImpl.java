@@ -8,9 +8,10 @@ import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
 
 import java.time.*;
+import java.util.*;
 
 @Service
-class AuditLogServiceImpl implements AuditLogService {
+public class AuditLogServiceImpl implements AuditLogService {
 	@Autowired
 	AuditLogRepository auditLogRepository;
 	
@@ -50,5 +51,15 @@ class AuditLogServiceImpl implements AuditLogService {
 		log.setTimestamp(LocalDateTime.now());
 		
 		auditLogRepository.save(log);
+	}
+	
+	@Override
+	public List<AuditLog> getAllAuditLogs() {
+		return auditLogRepository.findAll();
+	}
+	
+	@Override
+	public List<AuditLog> getAuditLogsForNoteId(Long id) {
+		return auditLogRepository.findByNoteId(id);
 	}
 }
