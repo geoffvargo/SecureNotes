@@ -6,6 +6,7 @@ import com.geoffvargo.securenotes.repositories.*;
 import com.geoffvargo.securenotes.services.*;
 
 import org.springframework.beans.factory.annotation.*;
+import org.springframework.security.crypto.password.*;
 import org.springframework.stereotype.*;
 
 import java.util.*;
@@ -18,10 +19,12 @@ class UserServiceImpl implements UserService {
 	@Autowired
 	RoleRepository roleRepository;
 	
+	@Autowired
+	PasswordEncoder passwordEncoder;
+	
 	@Override
 	public void updateUserRole(long userId, String roleName) {
-		User user = userRepository.findById(userId).orElseThrow(
-			() -> new RuntimeException("User not found."));
+		User user = getUser(userId);
 		
 		AppRole appRole = AppRole.valueOf(roleName);
 		
@@ -71,4 +74,54 @@ class UserServiceImpl implements UserService {
 			                        new RuntimeException("User not found with username: " + username));
 	}
 	
+	@Override
+	public void updateLockStatus(Long userId, boolean lock) {
+		User user = getUser(userId);
+		user.setAccountNonLocked(!lock);
+		userRepository.save(user);
+	}
+	
+	@Override
+	public List<Role> getAllRoles() {
+		return roleRepository.findAll();
+	}
+	
+	@Override
+	public void updateAccountExpiryStatus(Long userId, boolean expired) {
+		User user = getUser(userId);
+		user.setAccountNonExpired(!expired);
+		userRepository.save(user);
+	}
+	
+	@Override
+	public void updateAccountEnabledStatus(Long userId, Boolean enabled) {
+		User user = getUser(userId);
+		user.setEnabled(enabled);
+		userRepository.save(user);
+	}
+	
+	@Override
+	public void updateCredentialsExpiryStatus(Long userId, Boolean expired) {
+		User user = getUser(userId);
+		user.setCredentialsNonExpired(!expired);
+		userRepository.save(user);
+	}
+	
+	@Override
+	public void updatePassword(Long userId, String password) {
+		User user = getUser(userId);
+		
+		try {
+			user.setPassword(passwordEncoder.encode(password));
+			userRepository.save(user);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to update password");
+		}
+	}
+	
+	private User getUser(Long userId) {
+		return userRepository.findById(userId).orElseThrow(
+			() -> new RuntimeException("User not found.")
+		);
+	}
 }

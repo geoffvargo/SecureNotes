@@ -6,7 +6,6 @@ import com.geoffvargo.securenotes.services.*;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.*;
-import org.springframework.security.access.prepost.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -35,5 +34,49 @@ public class AdminController {
 	@GetMapping("/user/{id}")
 	public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
 		return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
+	}
+	
+	@PutMapping("/update-lock-status")
+	public ResponseEntity<String> updateAccountLockStatus(@RequestParam Long userId,
+	                                                      @RequestParam boolean lock) {
+		userService.updateLockStatus(userId, lock);
+		return ResponseEntity.ok("Account lock status updated.");
+	}
+	
+	@GetMapping("/roles")
+	public List<Role> getAllRoles() {
+		return userService.getAllRoles();
+	}
+	
+	@PutMapping("/update-expiry-status")
+	public ResponseEntity<String> updateAccountExpiryStatus(@RequestParam Long userId,
+	                                                        @RequestParam boolean expired) {
+		userService.updateAccountExpiryStatus(userId, expired);
+		return ResponseEntity.ok("Account expiry status updated");
+	}
+	
+	@PutMapping("/update-enabled-status")
+	public ResponseEntity<String> updateAccountEnabledStatus(@RequestParam Long userId,
+	                                                         @RequestParam boolean enabled) {
+		userService.updateAccountEnabledStatus(userId, enabled);
+		return ResponseEntity.ok("Account enabled status updated");
+	}
+	
+	@PutMapping("/update-credentials-expiry-status")
+	public ResponseEntity<?> updateCredentialsExpiryStatus(@RequestParam Long userId,
+	                                                       @RequestParam boolean expired) {
+		userService.updateCredentialsExpiryStatus(userId, expired);
+		return ResponseEntity.ok("Credentials expiry status updated");
+	}
+	
+	@PutMapping("")
+	public ResponseEntity<?> updatePassword(@RequestParam Long userId,
+	                                              @RequestParam String password) {
+		try {
+			userService.updatePassword(userId, password);
+			return ResponseEntity.ok("Password updated");
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+		}
 	}
 }
