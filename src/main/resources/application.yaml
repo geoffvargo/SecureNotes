@@ -23,6 +23,19 @@ spring:
     jwtSecret: "mySecretKey123912738aopsgjnspkmndfsopkvajoirjg94gf2opfng2moknm"
     jwtExpirationMs: 172800000
 
+  mail:
+    host: "smtp.gmail.com"
+    port: 587
+    username: "geoffvargo@gmail.com"
+    password: "cvwayvzogzizkqvf"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
 frontend:
   url: "http://localhost:3000"
 

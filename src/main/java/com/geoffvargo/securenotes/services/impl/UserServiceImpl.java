@@ -4,15 +4,21 @@ import com.geoffvargo.securenotes.DTOs.*;
 import com.geoffvargo.securenotes.models.*;
 import com.geoffvargo.securenotes.repositories.*;
 import com.geoffvargo.securenotes.services.*;
+import com.geoffvargo.securenotes.util.*;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.security.crypto.password.*;
 import org.springframework.stereotype.*;
 
+import java.time.*;
+import java.time.temporal.*;
 import java.util.*;
 
 @Service
 class UserServiceImpl implements UserService {
+	@Value("${frontend.url")
+	String frontendUrl;
+	
 	@Autowired
 	UserRepository userRepository;
 	
@@ -21,6 +27,12 @@ class UserServiceImpl implements UserService {
 	
 	@Autowired
 	PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	PasswordResetTokenRepository passwordResetTokenRepository;
+	
+	@Autowired
+	EmailService emailService;
 	
 	@Override
 	public void updateUserRole(long userId, String roleName) {
@@ -117,6 +129,21 @@ class UserServiceImpl implements UserService {
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to update password");
 		}
+	}
+	
+	@Override
+	public void generatePasswordResetToken(String email) {
+		User user = userRepository.findByEmail(email)
+			            .orElseThrow(() -> new RuntimeException("User not found"));
+		
+		String token = UUID.randomUUID().toString();
+		Instant expiryDate = Instant.now().plus(24, ChronoUnit.HOURS);
+		PasswordResetToken resetToken = new PasswordResetToken(token, expiryDate, user);
+		passwordResetTokenRepository.save(resetToken);
+		
+		String resetUrl = frontendUrl + "/reset-password?token=" + token;
+		
+		emailService.sendPasswordResetEmail(user.getEmail(), resetUrl);
 	}
 	
 	private User getUser(Long userId) {

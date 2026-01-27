@@ -65,7 +65,7 @@ public class SecurityConfig {
 		http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 		http.addFilterBefore(new CustomLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
 		http.formLogin(withDefaults());
-		http.httpBasic(withDefaults());
+//		http.httpBasic(withDefaults());
 		return http.build();
 	}
 	
