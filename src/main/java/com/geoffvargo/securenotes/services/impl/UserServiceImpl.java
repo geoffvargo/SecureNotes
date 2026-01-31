@@ -16,7 +16,7 @@ import java.util.*;
 
 @Service
 class UserServiceImpl implements UserService {
-	@Value("${frontend.url")
+	@Value("${frontend.url}")
 	String frontendUrl;
 	
 	@Autowired
@@ -134,7 +134,7 @@ class UserServiceImpl implements UserService {
 	@Override
 	public void generatePasswordResetToken(String email) {
 		User user = userRepository.findByEmail(email)
-			            .orElseThrow(() -> new RuntimeException("User not found"));
+		                          .orElseThrow(() -> new RuntimeException("User not found"));
 		
 		String token = UUID.randomUUID().toString();
 		Instant expiryDate = Instant.now().plus(24, ChronoUnit.HOURS);
@@ -144,6 +144,28 @@ class UserServiceImpl implements UserService {
 		String resetUrl = frontendUrl + "/reset-password?token=" + token;
 		
 		emailService.sendPasswordResetEmail(user.getEmail(), resetUrl);
+	}
+	
+	@Override
+	public void resetPassword(String token, String newPassword) {
+		PasswordResetToken resetToken =
+			passwordResetTokenRepository.findByToken(token)
+			                            .orElseThrow(
+				                            () -> new RuntimeException("Invalid password reset token")
+			                            );
+		
+		if (resetToken.isUsed())
+			throw new RuntimeException("Password reset token has already been used");
+		
+		if (resetToken.getExpiryDate().isBefore(Instant.now()))
+			throw new RuntimeException("Password reset token has expired");
+		
+		User user = resetToken.getUser();
+		user.setPassword(passwordEncoder.encode(newPassword));
+		userRepository.save(user);
+		
+		resetToken.setUsed(true);
+		passwordResetTokenRepository.save(resetToken);
 	}
 	
 	private User getUser(Long userId) {

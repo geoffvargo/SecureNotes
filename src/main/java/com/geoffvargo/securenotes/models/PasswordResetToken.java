@@ -7,6 +7,7 @@ import lombok.*;
 
 @Data
 @Entity
+@NoArgsConstructor
 public class PasswordResetToken {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
