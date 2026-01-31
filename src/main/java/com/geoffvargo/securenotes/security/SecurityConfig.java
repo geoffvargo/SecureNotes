@@ -53,19 +53,19 @@ public class SecurityConfig {
 		http.csrf(csrf ->
 			          csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
 			              .ignoringRequestMatchers("/api/auth/public/**"));
-//		http.csrf(AbstractHttpConfigurer::disable);
 		http.authorizeHttpRequests((requests)
 			                           -> requests
-//				                              .requestMatchers("/api/audit/**").hasRole("ADMIN")
 				                              .requestMatchers("/api/admin/**").hasRole("ADMIN")
 				                              .requestMatchers("/api/csrf-token").permitAll()
 				                              .requestMatchers("/api/auth/public/**").permitAll()
-				                              .anyRequest().authenticated());
+				                              .requestMatchers("/oauth2/**").permitAll()
+				                              .anyRequest().authenticated())
+		    .oauth2Login(oauth -> {});
 		http.exceptionHandling(e -> e.authenticationEntryPoint(unauthorizedHandler));
 		http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 		http.addFilterBefore(new CustomLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
 		http.formLogin(withDefaults());
-//		http.httpBasic(withDefaults());
+		
 		return http.build();
 	}
 	
