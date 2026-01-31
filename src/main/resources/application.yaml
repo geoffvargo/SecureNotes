@@ -18,6 +18,13 @@ spring:
     user:
       name: "admin"
       password: "password"
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: "Ov23liiWaxh8D1xixsMM"
+            client-secret: "47c3ad6480fe28ee617a3fd6ebf520bc76b4e931"
+            scope: read:user, user:email
 
   app:
     jwtSecret: "mySecretKey123912738aopsgjnspkmndfsopkvajoirjg94gf2opfng2moknm"
