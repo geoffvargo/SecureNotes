@@ -1,5 +1,6 @@
 package com.geoffvargo.securenotes.security;
 
+import com.geoffvargo.securenotes.config.*;
 import com.geoffvargo.securenotes.models.*;
 import com.geoffvargo.securenotes.models.Role;
 import com.geoffvargo.securenotes.repositories.*;
@@ -43,6 +44,10 @@ public class SecurityConfig {
 		return new BCryptPasswordEncoder();
 	}
 	
+	@Autowired
+	@Lazy
+	OAuth2LoginSuccessHandler oauth2SuccessHandler;
+	
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
 		return authConfig.getAuthenticationManager();
@@ -60,7 +65,9 @@ public class SecurityConfig {
 				                              .requestMatchers("/api/auth/public/**").permitAll()
 				                              .requestMatchers("/oauth2/**").permitAll()
 				                              .anyRequest().authenticated())
-		    .oauth2Login(oauth -> {});
+		    .oauth2Login(oauth -> {
+				 oauth.successHandler(oauth2SuccessHandler);
+			 });
 		http.exceptionHandling(e -> e.authenticationEntryPoint(unauthorizedHandler));
 		http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 		http.addFilterBefore(new CustomLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
