@@ -120,6 +120,15 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
 		String email = (String) attributes.get("email");
 		log.info("OAuth2LoginSuccessHandler: {} : {}", username, email);
 		
+		Set<SimpleGrantedAuthority> authorities =
+			new HashSet<>(oauth2User.getAuthorities().stream()
+								  .map(
+									  auth -> new SimpleGrantedAuthority(
+										  auth.getAuthority()))
+								  .collect(Collectors.toList()));
+		User user = userService.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+		authorities.add(new SimpleGrantedAuthority(user.getRole().getRoleName().name()));
+		
 		// Create UserDetailsImpl instance
 		UserDetailsImpl userDetails = new UserDetailsImpl(
 			null,
@@ -127,9 +136,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
 			email,
 			null,
 			false,
-			oauth2User.getAuthorities().stream()
-				.map(auth -> new SimpleGrantedAuthority(auth.getAuthority()))
-				.collect(Collectors.toList())
+			authorities
 		);
 		
 		// Generate JWT token

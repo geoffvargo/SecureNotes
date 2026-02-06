@@ -7,6 +7,7 @@ import org.springframework.stereotype.*;
 
 import java.security.*;
 import java.util.*;
+import java.util.stream.*;
 
 import javax.crypto.*;
 
@@ -38,9 +39,13 @@ public class JwtUtils {
 	
 	public String generateTokenFromUsername(UserDetails userDetails) {
 		String username = userDetails.getUsername();
+		String roles = userDetails.getAuthorities().stream()
+			               .map(auth -> auth.getAuthority())
+			               .collect(Collectors.joining(","));
 		
 		return Jwts.builder()
 			       .subject(username)
+			       .claim("roles", roles)
 			       .issuedAt(new Date((new Date()).getTime() + jwtExpirationMs))
 			       .signWith(key())
 			       .compact();
