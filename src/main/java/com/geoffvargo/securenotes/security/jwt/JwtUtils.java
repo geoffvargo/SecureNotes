@@ -57,7 +57,7 @@ public class JwtUtils {
 	
 	public String getUserNameFromJwtToken(String token) {
 		return Jwts.parser()
-		           .verifyWith((SecretKey) key())
+			       .verifyWith((SecretKey) key())
 			       .build()
 			       .parseSignedClaims(token)
 			       .getPayload()
@@ -69,7 +69,7 @@ public class JwtUtils {
 			System.out.println("Validate");
 			
 			Jwts.parser()
-			    .verifyWith((SecretKey) key())
+				.verifyWith((SecretKey) key())
 				.build()
 				.parseSignedClaims(authToken);
 			
