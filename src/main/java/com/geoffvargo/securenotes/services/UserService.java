@@ -2,6 +2,7 @@ package com.geoffvargo.securenotes.services;
 
 import com.geoffvargo.securenotes.DTOs.*;
 import com.geoffvargo.securenotes.models.*;
+import com.warrenstrange.googleauth.*;
 
 import java.util.*;
 
@@ -33,4 +34,12 @@ public interface UserService {
 	Optional<User> findByEmail(String email);
 	
 	User registerUser(User user);
+	
+	GoogleAuthenticatorKey generate2FAsecret(Long userId);
+	
+	boolean validate2FACode(Long userId, int code);
+	
+	void enable2FA(Long userId);
+	
+	void disable2FA(Long userId);
 }

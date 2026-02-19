@@ -5,6 +5,7 @@ import com.geoffvargo.securenotes.models.*;
 import com.geoffvargo.securenotes.repositories.*;
 import com.geoffvargo.securenotes.services.*;
 import com.geoffvargo.securenotes.util.*;
+import com.warrenstrange.googleauth.*;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.security.crypto.password.*;
@@ -33,6 +34,9 @@ class UserServiceImpl implements UserService {
 	
 	@Autowired
 	EmailService emailService;
+	
+	@Autowired
+	TotpService totpService;
 	
 	@Override
 	public void updateUserRole(long userId, String roleName) {
@@ -134,7 +138,7 @@ class UserServiceImpl implements UserService {
 	@Override
 	public void generatePasswordResetToken(String email) {
 		User user = userRepository.findByEmail(email)
-		                          .orElseThrow(() -> new RuntimeException("User not found"));
+			            .orElseThrow(() -> new RuntimeException("User not found"));
 		
 		String token = UUID.randomUUID().toString();
 		Instant expiryDate = Instant.now().plus(24, ChronoUnit.HOURS);
@@ -150,15 +154,17 @@ class UserServiceImpl implements UserService {
 	public void resetPassword(String token, String newPassword) {
 		PasswordResetToken resetToken =
 			passwordResetTokenRepository.findByToken(token)
-			                            .orElseThrow(
-				                            () -> new RuntimeException("Invalid password reset token")
-			                            );
+				.orElseThrow(
+					() -> new RuntimeException("Invalid password reset token")
+				);
 		
-		if (resetToken.isUsed())
+		if (resetToken.isUsed()) {
 			throw new RuntimeException("Password reset token has already been used");
+		}
 		
-		if (resetToken.getExpiryDate().isBefore(Instant.now()))
+		if (resetToken.getExpiryDate().isBefore(Instant.now())) {
 			throw new RuntimeException("Password reset token has expired");
+		}
 		
 		User user = resetToken.getUser();
 		user.setPassword(passwordEncoder.encode(newPassword));
@@ -175,9 +181,39 @@ class UserServiceImpl implements UserService {
 	
 	@Override
 	public User registerUser(User user) {
-		if (user.getPassword() != null)
+		if (user.getPassword() != null) {
 			user.setPassword(passwordEncoder.encode(user.getPassword()));
+		}
 		return userRepository.save(user);
+	}
+	
+	@Override
+	public GoogleAuthenticatorKey generate2FAsecret(Long userId) {
+		User user = getUser(userId);
+		GoogleAuthenticatorKey key = totpService.generateSecret();
+		user.setTwoFactorSecret(key.getKey());
+		userRepository.save(user);
+		return key;
+	}
+	
+	@Override
+	public boolean validate2FACode(Long userId, int code) {
+		User user = getUser(userId);
+		return totpService.verifyCode(user.getTwoFactorSecret(), code);
+	}
+	
+	@Override
+	public void enable2FA(Long userId) {
+		User user = getUser(userId);
+		user.setTwoFactorEnabled(true);
+		userRepository.save(user);
+	}
+	
+	@Override
+	public void disable2FA(Long userId) {
+		User user = getUser(userId);
+		user.setTwoFactorEnabled(false);
+		userRepository.save(user);
 	}
 	
 	private User getUser(Long userId) {
