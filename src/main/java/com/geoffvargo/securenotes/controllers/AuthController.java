@@ -7,6 +7,8 @@ import com.geoffvargo.securenotes.security.jwt.*;
 import com.geoffvargo.securenotes.security.request.*;
 import com.geoffvargo.securenotes.security.response.*;
 import com.geoffvargo.securenotes.services.*;
+import com.geoffvargo.securenotes.util.*;
+import com.warrenstrange.googleauth.*;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.*;
@@ -45,6 +47,12 @@ public class AuthController {
 	@Autowired
 	PasswordEncoder encoder;
 	
+	@Autowired
+	AuthUtil authUtil;
+	
+	@Autowired
+	TotpService totpService;
+	
 	@PostMapping("/public/signin")
 	public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
 		Authentication authentication;
@@ -71,8 +79,8 @@ public class AuthController {
 		
 		// Collect roles from the UserDetails
 		List<String> roles = userDetails.getAuthorities().stream()
-		                                .map(GrantedAuthority::getAuthority)
-		                                .toList();
+			                     .map(GrantedAuthority::getAuthority)
+			                     .toList();
 		
 		// Prepare the response body, now including the JWT token directly in the body
 		LoginResponse response = new LoginResponse(userDetails.getUsername(), roles, jwtToken);
@@ -93,24 +101,24 @@ public class AuthController {
 		
 		// Create new user's account
 		User user = new User(request.getUsername(),
-		                     request.getEmail(),
-		                     encoder.encode(request.getPassword()));
+			request.getEmail(),
+			encoder.encode(request.getPassword()));
 		
 		Set<String> strRoles = request.getRole();
 		Role role;
 		
 		if (strRoles == null || strRoles.isEmpty()) {
 			role = roleRepository.findByRoleName(AppRole.ROLE_USER)
-			                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+				       .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 		} else {
 			String roleStr = strRoles.iterator().next();
 			
 			if (roleStr.equals("admin")) {
 				role = roleRepository.findByRoleName(AppRole.ROLE_ADMIN)
-				                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+					       .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 			} else {
 				role = roleRepository.findByRoleName(AppRole.ROLE_USER)
-				                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+					       .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 			}
 			
 			user.setAccountNonLocked(true);
@@ -134,8 +142,8 @@ public class AuthController {
 		User user = userService.findByUsername(userDetails.getUsername());
 		
 		List<String> roles = userDetails.getAuthorities().stream()
-		                                .map(GrantedAuthority::getAuthority)
-		                                .toList();
+			                     .map(GrantedAuthority::getAuthority)
+			                     .toList();
 		
 		UserInfoResponse response = new UserInfoResponse(
 			user.getUserId(),
@@ -167,7 +175,7 @@ public class AuthController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-			                     .body(new MessageResponse("Error sending password reset email"));
+				       .body(new MessageResponse("Error sending password reset email"));
 		}
 	}
 	
@@ -180,6 +188,62 @@ public class AuthController {
 		} catch (RuntimeException e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(e.getMessage()));
+		}
+	}
+	
+	// 2FA authentication
+	@PostMapping("/enable-2fa")
+	public ResponseEntity<?> enable2fa() {
+		Long userId = authUtil.LoggedInUserId();
+		GoogleAuthenticatorKey secret = userService.generate2FAsecret(userId);
+		String qrCodeUrl = totpService.getQrCodeUrl(secret,
+			userService.getUserById(userId).getUserName());
+		return ResponseEntity.ok(qrCodeUrl);
+	}
+	
+	@PostMapping("/disable-2fa")
+	public ResponseEntity<?> disable2fa() {
+		Long userId = authUtil.LoggedInUserId();
+		userService.disable2FA(userId);
+		return ResponseEntity.ok("User disabled successfully");
+	}
+	
+	@PostMapping("/verify-2fa")
+	public ResponseEntity<?> verify2fa(@RequestParam int code) {
+		Long userId = authUtil.LoggedInUserId();
+		boolean isValid = userService.validate2FACode(userId, code);
+		if (isValid) {
+			userService.enable2FA(userId);
+			return ResponseEntity.ok("2FA verified successfully");
+		} else {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				       .body("Invalid 2FA code");
+		}
+	}
+	
+	@PostMapping("/user/2fa-status")
+	public ResponseEntity<?> get2faStatus() {
+		User user = authUtil.LoggedInUser();
+		if (user != null) {
+			return ResponseEntity.ok().body(Map.of("is2faEnabled", user.isTwoFactorEnabled()));
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+		}
+	}
+	
+	@PostMapping("/public/verify-2fa-login")
+	public ResponseEntity<?> verify2faLogin(@RequestParam int code,
+	                                        @RequestParam String jwtToken) {
+		String username = jwtUtils.getUserNameFromJwtToken(jwtToken);
+		User user = userService.findByUsername(username);
+		Long userId = user.getUserId();
+		boolean isValid = userService.validate2FACode(userId, code);
+		if (isValid) {
+			userService.enable2FA(userId);
+			return ResponseEntity.ok("2FA verified successfully");
+		} else {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				       .body("Invalid 2FA code");
 		}
 	}
 }
