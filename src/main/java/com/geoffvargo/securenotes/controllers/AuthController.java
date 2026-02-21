@@ -221,7 +221,7 @@ public class AuthController {
 		}
 	}
 	
-	@PostMapping("/user/2fa-status")
+	@GetMapping("/user/2fa-status")
 	public ResponseEntity<?> get2faStatus() {
 		User user = authUtil.LoggedInUser();
 		if (user != null) {
