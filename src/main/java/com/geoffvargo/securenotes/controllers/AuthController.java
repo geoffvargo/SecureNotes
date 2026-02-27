@@ -6,6 +6,7 @@ import com.geoffvargo.securenotes.repositories.*;
 import com.geoffvargo.securenotes.security.jwt.*;
 import com.geoffvargo.securenotes.security.request.*;
 import com.geoffvargo.securenotes.security.response.*;
+import com.geoffvargo.securenotes.security.services.*;
 import com.geoffvargo.securenotes.services.*;
 import com.geoffvargo.securenotes.util.*;
 import com.warrenstrange.googleauth.*;
@@ -73,7 +74,7 @@ public class AuthController {
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		
 		// specific to our implementation
-		UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 		
 		String jwtToken = jwtUtils.generateTokenFromUsername(userDetails);
 		

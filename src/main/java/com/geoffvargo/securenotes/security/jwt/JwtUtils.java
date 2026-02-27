@@ -1,5 +1,7 @@
 package com.geoffvargo.securenotes.security.jwt;
 
+import com.geoffvargo.securenotes.security.services.*;
+
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.security.core.userdetails.*;
@@ -37,7 +39,7 @@ public class JwtUtils {
 		return null;
 	}
 	
-	public String generateTokenFromUsername(UserDetails userDetails) {
+	public String generateTokenFromUsername(UserDetailsImpl userDetails) {
 		String username = userDetails.getUsername();
 		String roles = userDetails.getAuthorities().stream()
 			               .map(auth -> auth.getAuthority())
@@ -46,6 +48,7 @@ public class JwtUtils {
 		return Jwts.builder()
 			       .subject(username)
 			       .claim("roles", roles)
+			       .claim("is2faEnabled", userDetails.is2faEnabled())
 			       .issuedAt(new Date((new Date()).getTime() + jwtExpirationMs))
 			       .signWith(key())
 			       .compact();
