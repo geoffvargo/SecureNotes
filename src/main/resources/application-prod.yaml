@@ -1,5 +1,5 @@
 spring:
   datasource:
-    url: "jdbc:mysql://securenotesdb.ckr60mscs7d7.us-east-1.rds.amazonaws.com:3306/securenotes"
-    username: "admin"
-    password: "7RDA732A5yaWU9y"
+    url: "${SPRING_DATASOURCE_URL}"
+    username: "${SPRING_DATASOURCE_USERNAME}"
+    password: "${SPRING_DATASOURCE_PASSWORD}"
