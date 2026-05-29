@@ -28,31 +28,24 @@ import jakarta.validation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:3000"}, maxAge = 3600, allowCredentials = "true")
 public class AuthController {
 	@Autowired
 	JwtUtils jwtUtils;
-	
-	@Autowired
-	private AuthenticationManager authenticationManager;
-	
 	@Autowired
 	UserRepository userRepository;
-	
 	@Autowired
 	UserService userService;
-	
 	@Autowired
 	RoleRepository roleRepository;
-	
 	@Autowired
 	PasswordEncoder encoder;
-	
 	@Autowired
 	AuthUtil authUtil;
-	
 	@Autowired
 	TotpService totpService;
+	@Autowired
+	private AuthenticationManager authenticationManager;
 	
 	@PostMapping("/public/signin")
 	public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {

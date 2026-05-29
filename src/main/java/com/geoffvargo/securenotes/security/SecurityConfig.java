@@ -10,15 +10,16 @@ import org.springframework.beans.factory.annotation.*;
 import org.springframework.boot.*;
 import org.springframework.context.annotation.*;
 import org.springframework.security.authentication.*;
+import org.springframework.security.config.*;
 import org.springframework.security.config.annotation.authentication.configuration.*;
 import org.springframework.security.config.annotation.method.configuration.*;
 import org.springframework.security.config.annotation.web.builders.*;
 import org.springframework.security.config.annotation.web.configuration.*;
+import org.springframework.security.config.http.*;
 import org.springframework.security.crypto.bcrypt.*;
 import org.springframework.security.crypto.password.*;
 import org.springframework.security.web.*;
 import org.springframework.security.web.authentication.*;
-import org.springframework.security.web.csrf.*;
 
 import java.time.*;
 
@@ -32,21 +33,15 @@ import static org.springframework.security.config.Customizer.*;
 public class SecurityConfig {
 	
 	@Autowired
+	@Lazy
+	OAuth2LoginSuccessHandler oauth2SuccessHandler;
+	@Autowired
 	private AuthEntryPointJwt unauthorizedHandler;
-	
-	@Bean
-	public AuthTokenFilter authenticationJwtTokenFilter() {
-		return new AuthTokenFilter();
-	}
 	
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
-	
-	@Autowired
-	@Lazy
-	OAuth2LoginSuccessHandler oauth2SuccessHandler;
 	
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
@@ -55,9 +50,16 @@ public class SecurityConfig {
 	
 	@Bean
 	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+//		CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+//		requestHandler.setCsrfRequestAttributeName(null); // Overrides the default XOR behavior
+		
 		http.csrf(csrf ->
-			          csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-			              .ignoringRequestMatchers("/api/auth/public/**"));
+			          csrf.disable())
+			.cors(Customizer.withDefaults())
+			.sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+//			          csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+//			              .ignoringRequestMatchers("/api/auth/public/**")
+//				          .csrfTokenRequestHandler(requestHandler));
 		http.authorizeHttpRequests((requests)
 			                           -> requests
 				                              .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -65,9 +67,9 @@ public class SecurityConfig {
 				                              .requestMatchers("/api/auth/public/**").permitAll()
 				                              .requestMatchers("/oauth2/**").permitAll()
 				                              .anyRequest().authenticated())
-		    .oauth2Login(oauth -> {
-				 oauth.successHandler(oauth2SuccessHandler);
-			 });
+			.oauth2Login(oauth -> {
+				oauth.successHandler(oauth2SuccessHandler);
+			});
 		http.exceptionHandling(e -> e.authenticationEntryPoint(unauthorizedHandler));
 		http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 		http.addFilterBefore(new CustomLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -77,17 +79,22 @@ public class SecurityConfig {
 	}
 	
 	@Bean
+	public AuthTokenFilter authenticationJwtTokenFilter() {
+		return new AuthTokenFilter();
+	}
+	
+	@Bean
 	public CommandLineRunner initData(RoleRepository roleRepository,
 	                                  UserRepository userRepository,
 	                                  PasswordEncoder passwordEncoder) {
 		return args -> {
 			Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
-			                              .orElseGet(() ->
-				                                         roleRepository.save(new Role(AppRole.ROLE_USER)));
+				                .orElseGet(() ->
+					                           roleRepository.save(new Role(AppRole.ROLE_USER)));
 			
 			Role adminRole = roleRepository.findByRoleName(AppRole.ROLE_ADMIN)
-			                               .orElseGet(() ->
-				                                          roleRepository.save(new Role(AppRole.ROLE_ADMIN)));
+				                 .orElseGet(() ->
+					                            roleRepository.save(new Role(AppRole.ROLE_ADMIN)));
 			
 			if (!userRepository.existsByUserName("user1")) {
 				User user1 = new User("user1", "user1@example.com", passwordEncoder.encode("password1"));

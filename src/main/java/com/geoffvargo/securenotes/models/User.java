@@ -58,7 +58,7 @@ public class User {
 	
 	@ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
 	@JoinColumn(name = "role_id", referencedColumnName = "role_id")
-	@JsonBackReference
+	@JsonIgnoreProperties("users")
 	@ToString.Exclude
 	private Role role;
 	
@@ -81,6 +81,11 @@ public class User {
 	}
 	
 	@Override
+	public int hashCode() {
+		return getClass().hashCode();
+	}
+	
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -89,10 +94,5 @@ public class User {
 			return false;
 		}
 		return userId != null && userId.equals(((User) o).getUserId());
-	}
-	
-	@Override
-	public int hashCode() {
-		return getClass().hashCode();
 	}
 }

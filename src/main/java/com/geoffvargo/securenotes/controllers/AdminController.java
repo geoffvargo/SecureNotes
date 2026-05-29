@@ -12,7 +12,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:3000"}, maxAge = 3600, allowCredentials = "true")
 //@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class AdminController {
 	@Autowired
@@ -30,7 +30,7 @@ public class AdminController {
 		return ResponseEntity.ok("User role updated.");
 	}
 	
-//	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	//	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@GetMapping("/user/{id}")
 	public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
 		return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
@@ -71,7 +71,7 @@ public class AdminController {
 	
 	@PutMapping("")
 	public ResponseEntity<?> updatePassword(@RequestParam Long userId,
-	                                              @RequestParam String password) {
+	                                        @RequestParam String password) {
 		try {
 			userService.updatePassword(userId, password);
 			return ResponseEntity.ok("Password updated");
