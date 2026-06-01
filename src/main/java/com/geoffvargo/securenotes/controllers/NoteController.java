@@ -12,7 +12,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/notes")
-@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:4200"}, maxAge = 3600, allowCredentials = "true")
 public class NoteController {
 	@Autowired
 	private NoteService noteService;

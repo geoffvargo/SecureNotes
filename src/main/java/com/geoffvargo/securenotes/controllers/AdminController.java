@@ -12,7 +12,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:4200"}, maxAge = 3600, allowCredentials = "true")
 //@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class AdminController {
 	@Autowired
@@ -69,7 +69,7 @@ public class AdminController {
 		return ResponseEntity.ok("Credentials expiry status updated");
 	}
 	
-	@PutMapping("")
+	@PutMapping("/update-password")
 	public ResponseEntity<?> updatePassword(@RequestParam Long userId,
 	                                              @RequestParam String password) {
 		try {

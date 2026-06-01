@@ -28,7 +28,7 @@ import jakarta.validation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhostL4200"}, maxAge = 3600, allowCredentials = "true")
 public class AuthController {
 	@Autowired
 	JwtUtils jwtUtils;
