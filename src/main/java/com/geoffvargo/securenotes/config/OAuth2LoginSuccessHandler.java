@@ -38,7 +38,8 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
 	@Autowired
 	private final RoleRepository roleRepository;
 	
-	@Value("${frontend.url}")
+	//	@Value("${frontend.url}")
+	@Value("http://localhost:4200")
 	private String frontendUrl;
 	
 	private String username;
